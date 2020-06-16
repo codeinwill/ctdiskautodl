@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 class CTDISKDownloadTask():
-	"""Automate Bulk Download from Chinese Cloud Storage CTDISK (545c.com)"""
+	"""Automate Bulk Download from Chinese Cloud Storage CTDISK"""
 
 	def __init__(self):
 		self.ctdiskurl = ""
+		self.rooturl = ""
 		self.source_html = ""
 		self.itemlist_count = 0
 		self.itemlist = []
@@ -23,10 +24,12 @@ class CTDISKDownloadTask():
 
 	def collect_html(self):
 		"""COLLECT RENDERED HTML, DOM IS BAD"""
+		from urllib.parse import urlparse
 		from selenium import webdriver
 		from webdriver_manager.chrome import ChromeDriverManager
 		from selenium.webdriver.support.ui import Select
 		import time
+		self.rooturl = urlparse(self.ctdiskurl).scheme + "://" + urlparse(self.ctdiskurl).hostname
 		browser = webdriver.Chrome(ChromeDriverManager().install(),options=self.selChromeOptions)
 		browser.get(self.ctdiskurl)
 		time.sleep(4) # important! - wait for css to load
@@ -131,7 +134,7 @@ class CTDISKDownloadTask():
 			task_link = re.compile(r"""\/file\/[\s\S]*?(?=")""")
 			task_link = task_link.findall(str(self.tasklist[num]))
 			task_link = task_link[0]
-			task_link = (r"https://545c.com") + task_link
+			task_link = self.rooturl + task_link
 			currentask_num = num + 1
 			logging.info("\ninitiating task %d/%d" %(currentask_num,self.tasklist_count))
 
@@ -204,6 +207,3 @@ if __name__ == '__main__':
 		task.report_taskresult()
 	except:
 		print("an error has occured.")
-	
-	#FOR DEBUGGING: sys_argv = [0,"https://545c.com/dir/11449240-25912334-eb2530",r"C:\test",400]
-	#FOR DEBUGGING: python ctdiskautodl.py "https://545c.com/dir/11449240-25912334-eb2530" "C:\test" "400"
